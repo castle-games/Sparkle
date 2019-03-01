@@ -41,24 +41,22 @@ func loadPrivateKeys(_ privateDSAKey: SecKey?, _ privateEdString: String?) -> Pr
     }
     // get keys from kechain instead
     else {
-        let res = SecItemCopyMatching([
+        // XXX(Castle): We do differently because we're Castle!!!!!1
+        /* let res = SecItemCopyMatching([
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "https://sparkle-project.org",
             kSecAttrAccount as String: "ed25519",
             kSecAttrProtocol as String: kSecAttrProtocolSSH,
             kSecReturnData as String: kCFBooleanTrue,
-            ] as CFDictionary, &item);
-        if res == errSecSuccess, let encoded = item as? Data, let data = Data(base64Encoded: encoded) {
-            keys = data
+            ] as CFDictionary, &item); */
+        if /*res == errSecSuccess,*/ let encoded = ProcessInfo.processInfo.environment["CASTLE_SPARKLE_KEY"], let keys = Data(base64Encoded: encoded) {
+            privateEdKey = keys[0..<64];
+            publicEdKey = keys[64...];
         } else {
-            print("Warning: Private key not found in the Keychain (\(res)). Please run the generate_keys tool");
+            print("Warning: Private key not found in the Castle CI environment (\(res))");
         }
     }
 
-    if let keys = keys {
-        privateEdKey = keys[0..<64];
-        publicEdKey = keys[64...];
-    }
     return PrivateKeys(privateDSAKey: privateDSAKey, privateEdKey: privateEdKey, publicEdKey: publicEdKey);
 }
 
